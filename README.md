@@ -1,2 +1,77 @@
 # dream-startup-generator
-A React site to generate AI-powered startup ideas.
+// This code is written in JavaScript (React), not Java
+import React, { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+
+export default function DreamStartupGenerator() {
+  const [skills, setSkills] = useState("");
+  const [interests, setInterests] = useState("");
+  const [resources, setResources] = useState("");
+  const [output, setOutput] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const generateIdea = async () => {
+    setLoading(true);
+    const prompt = `Create a unique and realistic startup idea based on these inputs:
+    Skills: ${skills}
+    Interests: ${interests}
+    Available Resources: ${resources}
+
+    Include: 1) Startup idea with name, 2) Description, 3) Monetization model, 4) Logo concept, 5) Landing page headline.`;
+
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer YOUR_OPENAI_API_KEY`
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    const data = await response.json();
+    setOutput(data.choices?.[0]?.message?.content || "Something went wrong");
+    setLoading(false);
+  };
+
+  return (
+    <div className="p-6 max-w-3xl mx-auto">
+      <h1 className="text-3xl font-bold mb-4">🚀 Dream Startup Generator</h1>
+      <Card className="mb-4">
+        <CardContent className="space-y-4">
+          <Input
+            placeholder="Your skills (e.g., coding, design)"
+            value={skills}
+            onChange={(e) => setSkills(e.target.value)}
+          />
+          <Input
+            placeholder="Your interests (e.g., AI, gaming, education)"
+            value={interests}
+            onChange={(e) => setInterests(e.target.value)}
+          />
+          <Input
+            placeholder="Available resources (e.g., time, money, tools)"
+            value={resources}
+            onChange={(e) => setResources(e.target.value)}
+          />
+          <Button onClick={generateIdea} disabled={loading}>
+            {loading ? "Generating..." : "Generate Startup Idea"}
+          </Button>
+        </CardContent>
+      </Card>
+      {output && (
+        <Card>
+          <CardContent>
+            <Textarea className="w-full h-96 whitespace-pre-wrap" value={output} readOnly />
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}
+
